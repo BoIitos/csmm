@@ -120,7 +120,7 @@ void exportYaml(const QDir &dir, const QString &yamlFileDest, const MapDescripto
 
 static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, const QDir &importDir,
                           const std::function<void(double)> &progressCallback,
-                          const QString &backgroundZipDir) {
+                          const QString &backgroundZipDir, bool includeMusic) {
     QSettings settings;
     QTemporaryDir intermediateDir(createTempDir("intermediate"));
     if (!intermediateDir.isValid()) {
@@ -156,6 +156,9 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
     std::ifstream yamlStream(std::filesystem::path(extractedYamlFile.toStdU16String()));
     auto node = YAML::Load(yamlStream);
     if (descriptor.fromYaml(node)) {
+        if (!includeMusic) {
+            descriptor.music.clear();
+        }
         // check if <BACKGROUNDNAME>-Background.zip also needs to be extracted
         if(!VanillaDatabase::isVanillaBackground(descriptor.background)) {
             QString extractedCmpresFile = QFileInfo(extractedYamlFile).dir().filePath(descriptor.background + ".cmpres");
@@ -258,7 +261,7 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
                 }
             }
         }
-        importYaml(extractedYamlFile, descriptor, importDir);
+        importYaml(extractedYamlFile, descriptor, importDir, [](double) {}, "", includeMusic);
     } else {
         throw Exception(QString(QObject::tr("File %1 could not be parsed")).arg(extractedYamlFile));
     }
@@ -266,13 +269,13 @@ static void importYamlZip(const QString &yamlZipSrc, MapDescriptor &descriptor, 
 
 void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &importDir,
                 const std::function<void(double)> &progressCallback,
-                const QString &backgroundZipDir) {
+                const QString &backgroundZipDir, bool includeMusic) {
     if(descriptor.names["en"] != ""){
         qInfo() << QObject::tr("Importing: %1").arg(descriptor.names["en"]).toUtf8().constData();
     }
 
     if (QFileInfo(yamlFileSrc).suffix() == "zip") {
-        importYamlZip(yamlFileSrc, descriptor, importDir, progressCallback, backgroundZipDir);
+        importYamlZip(yamlFileSrc, descriptor, importDir, progressCallback, backgroundZipDir, includeMusic);
     } else {
         if (!importDir.mkpath(PARAM_FOLDER)) {
             throw Exception(QObject::tr("could not create import param folder"));
@@ -295,6 +298,9 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
         std::ifstream yamlStream(std::filesystem::path(yamlFileSrc.toStdU16String()));
         auto node = YAML::Load(yamlStream);
         if (descriptor.fromYaml(node)) {
+            if (!includeMusic) {
+                descriptor.music.clear();
+            }
             // import frb files
             for (auto &frbFile: descriptor.frbFiles) {
                 if (frbFile.isEmpty()) continue; // skip unused slots
@@ -378,6 +384,12 @@ void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDi
         } else {
             throw Exception(QString(QObject::tr("File %1 could not be parsed")).arg(yamlFileSrc));
         }
+    }
+}
+
+void stripMusic(std::vector<MapDescriptor> &descriptors) {
+    for (auto &descriptor: descriptors) {
+        descriptor.music.clear();
     }
 }
 

@@ -188,6 +188,7 @@
     </property>
     <addaction name="actionPatch_MarkerCode"/>
     <addaction name="actionSeparate_Save_Game"/>
+    <addaction name="actionInclude_Custom_Music"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -344,6 +345,17 @@
    </property>
    <property name="text">
     <string>Separate Save Game</string>
+   </property>
+  </action>
+  <action name="actionInclude_Custom_Music">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Include Custom Music</string>
    </property>
   </action>
   <action name="actionPreferences">

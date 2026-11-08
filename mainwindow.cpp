@@ -123,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
     connect(ui->quickSetup, &QPushButton::clicked, this, [&](bool) {
-        auto dialog = new QuickSetupDialog(getMarkerCode(), getSeparateSaveGame());
+        auto dialog = new QuickSetupDialog(getMarkerCode(), getSeparateSaveGame(), getIncludeMusic());
         dialog->show();
         close();
     });
@@ -182,6 +182,10 @@ QString MainWindow::getMarkerCode() {
 
 bool MainWindow::getSeparateSaveGame() {
     return ui->actionSeparate_Save_Game->isChecked();
+}
+
+bool MainWindow::getIncludeMusic() {
+    return ui->actionInclude_Custom_Music->isChecked();
 }
 
 MainWindow::~MainWindow()
@@ -471,7 +475,10 @@ void MainWindow::exportToFolder(bool riivolution) {
         std::vector<MapDescriptor> descriptors;
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
-
+        if (!getIncludeMusic()) {
+            qInfo() << tr("Custom music will not be included").toUtf8().constData();
+            ImportExportUtils::stripMusic(descriptors);
+        }
 
         auto gameInstance = GameInstance::fromGameDirectory(wiiSaveDir, importDir->path(), descriptors);
         CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
@@ -507,6 +514,10 @@ void MainWindow::exportToFolder(bool riivolution) {
         // reload map descriptors
         int idx = 0;
         for (auto &descriptor: gameInstance.mapDescriptors()) {
+            if (!getIncludeMusic()) {
+                // keep the music in the table so that it is still there when re-enabling the option
+                descriptor.music = descriptorPtrs[idx]->music;
+            }
             ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
         }
     } catch (const ProgressCanceled &) {
@@ -575,6 +586,10 @@ void MainWindow::exportIsoWbfs() {
         progress.setValue(20);
         auto descriptorPtrs = ui->tableWidget->getDescriptors();
         std::transform(descriptorPtrs.begin(), descriptorPtrs.end(), std::back_inserter(descriptors), [](auto &ptr) { return *ptr; });
+        if (!getIncludeMusic()) {
+            qInfo() << tr("Custom music will not be included").toUtf8().constData();
+            ImportExportUtils::stripMusic(descriptors);
+        }
 
         auto gameInstance = GameInstance::fromGameDirectory(intermediatePath, importDir->path(), descriptors);
         CSMMModpack modpack(gameInstance, modList.begin(), modList.end());
@@ -599,6 +614,10 @@ void MainWindow::exportIsoWbfs() {
         // reload map descriptors
         int idx = 0;
         for (auto &descriptor: descriptors) {
+            if (!getIncludeMusic()) {
+                // keep the music in the table so that it is still there when re-enabling the option
+                descriptor.music = descriptorPtrs[idx]->music;
+            }
             ui->tableWidget->loadRowWithMapDescriptor(idx++, descriptor);
         }
     } catch (const ProgressCanceled &) {

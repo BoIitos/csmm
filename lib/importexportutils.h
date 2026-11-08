@@ -23,10 +23,17 @@ namespace ImportExportUtils {
      * @param descriptor the descriptor to modify
      * @param importDir the directory to place .frb files before saving, etc.
      * @param progressCallback called with a number in [0,1] to indicate import progress
+     * @param includeMusic if false, custom music of the map is neither downloaded nor imported
      * @return whether the import was successful
      */
     void importYaml(const QString &yamlFileSrc, MapDescriptor &descriptor, const QDir &importDir,
-                    const std::function<void(double)> &progressCallback = [](double) {}, const QString &backgroundZipDir = "");
+                    const std::function<void(double)> &progressCallback = [](double) {}, const QString &backgroundZipDir = "",
+                    bool includeMusic = true);
+
+    /**
+     * @brief stripMusic Removes all custom music from the given map descriptors, so that the vanilla music is used.
+     */
+    void stripMusic(std::vector<MapDescriptor> &descriptors);
 
     QString getSha1OfVanillaFileName(const QString &vanillaFileName);
 

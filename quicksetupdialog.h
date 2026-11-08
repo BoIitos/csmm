@@ -15,13 +15,14 @@ class QuickSetupDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit QuickSetupDialog(const QString &defaultMarkerCode, bool defaultSeparateSaveGame, QWidget *parent = nullptr);
+    explicit QuickSetupDialog(const QString &defaultMarkerCode, bool defaultSeparateSaveGame, bool defaultIncludeMusic = true, QWidget *parent = nullptr);
     ~QuickSetupDialog();
 private:
     bool shouldPatchRiivolution();
     Ui::QuickSetupDialog *ui;
     QString defaultMarkerCode;
     bool defaultSeparateSaveGame;
+    bool defaultIncludeMusic;
     QPushButton *exportToExtractedFolder, *exportToWbfsIso, *toAdvancedMode, *toPreferences;
     void onResultClick(QAbstractButton *button);
     void updateButtonBoxEnabled();

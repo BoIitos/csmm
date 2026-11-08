@@ -85,6 +85,7 @@ void run(QStringList arguments)
     QCommandLineOption verboseOption(QStringList() << "v" << "verbose", "Print extended information to console.");
     QCommandLineOption markerCodeOption(QStringList() << "markerCode", "Set the marker code for the iso/wbfs file. It can be any value between 00-ZZ using any digits or uppercase ASCII letters. The original game uses 01. Default is 02.", "markerCode");
     QCommandLineOption separateSaveGameOption(QStringList() << "separateSaveGame", "If set, the game will use a separate save game file instead of relying on the original save game.");
+    QCommandLineOption noMusicOption(QStringList() << "noMusic", "If set, the custom music of the maps will not be downloaded nor included. The maps will use the vanilla music instead.");
     QCommandLineOption mapZoneOption(QStringList() << "z" << "zone", "The <zone> of the map. 0=Super Mario Tour, 1=Dragon Quest Tour, 2=Special Tour.", "zone");
     QCommandLineOption modPackOption(QStringList() << "modpack", "The modpack file (.zip or modlist.txt) to load (leave blank for default).", "modpack");
     QCommandLineOption mapDescriptorConfigurationOption(QStringList() << "descCfg" << "descriptorCfg" << "descConfiguration" << "descriptorConfiguration", "The map description configuration .csv to use for saving instead of the default.", "descCfg", "");
@@ -346,6 +347,7 @@ void run(QStringList arguments)
             parser.addPositionalArgument("gameDir", "Fortune Street game directory.", "save <gameDir>");
             parser.addOption(modPackOption);
             parser.addOption(mapDescriptorConfigurationOption);
+            parser.addOption(noMusicOption);
 
             parser.process(arguments);
             const QStringList args = parser.positionalArguments();
@@ -376,7 +378,12 @@ void run(QStringList arguments)
                     modpack.load(sourceDir.path());
                     auto &descriptors = gameInstance.mapDescriptors();
                     try {
-                        Configuration::load(cfgPath, descriptors, importDir.path());
+                        bool includeMusic = !parser.isSet(noMusicOption);
+                        Configuration::load(cfgPath, descriptors, importDir.path(), [](double) {}, includeMusic);
+                        if (!includeMusic) {
+                            qInfo() << "Custom music will not be included";
+                            ImportExportUtils::stripMusic(descriptors);
+                        }
 
                         if (std::any_of(mods.first.begin(), mods.first.end(), [](auto &mod) { return mod->modId() == "wifiFix"; })) {
                             qInfo() << "**> The game will be saved with Wiimmfi text replacing WFC. Wiimmfi will only be patched after packing it to a wbfs/iso using csmm pack command.";

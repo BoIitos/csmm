@@ -44,6 +44,7 @@ private:
 
     QString getMarkerCode();
     bool getSeparateSaveGame();
+    bool getIncludeMusic();
 
 protected:
     void changeEvent(QEvent *event) override;

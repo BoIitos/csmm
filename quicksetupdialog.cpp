@@ -13,18 +13,20 @@
 #include "lib/mods/modloader.h"
 #include "lib/mods/csmmmodpack.h"
 #include "lib/configuration.h"
+#include "lib/importexportutils.h"
 #include "lib/riivolution.h"
 #include "csmmprogressdialog.h"
 #include "mainwindow.h"
 
-QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaultSeparateSaveGame, QWidget *parent) :
+QuickSetupDialog::QuickSetupDialog(const QString &defaultMarkerCode, bool defaultSeparateSaveGame, bool defaultIncludeMusic, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::QuickSetupDialog), defaultMarkerCode(defaultMarkerCode), defaultSeparateSaveGame(defaultSeparateSaveGame)
+    ui(new Ui::QuickSetupDialog), defaultMarkerCode(defaultMarkerCode), defaultSeparateSaveGame(defaultSeparateSaveGame), defaultIncludeMusic(defaultIncludeMusic)
 {
     ui->setupUi(this);
     this->resize(size().width(),100);
     ui->markerCode->setText(defaultMarkerCode);
     ui->separateSaveGame->setChecked(defaultSeparateSaveGame);
+    ui->includeMusic->setChecked(defaultIncludeMusic);
 
     connect(ui->chooseInputGameFolder, &QPushButton::clicked, this, [this](bool){
         auto dirname = QFileDialog::getExistingDirectory(this, tr("Open Fortune Street Directory"), nullptr);
@@ -308,7 +310,12 @@ void QuickSetupDialog::onResultClick(QAbstractButton *button)
         mapListFileIt.next();
         Configuration::load(mapListFileIt.fileInfo().absoluteFilePath(), gameInstance.mapDescriptors(), QDir(importDir.path()), [&](double progress) {
             dialog.setValue(20 + (60 - 20) * progress);
-        });
+        }, ui->includeMusic->isChecked());
+
+        if (!ui->includeMusic->isChecked()) {
+            qInfo() << tr("Custom music will not be included").toUtf8().constData();
+            ImportExportUtils::stripMusic(gameInstance.mapDescriptors());
+        }
 
         dialog.setValue(60);
 

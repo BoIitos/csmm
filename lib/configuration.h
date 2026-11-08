@@ -40,7 +40,7 @@ void import(const QString &fileName,
             const std::optional<int> &zone,
             const std::optional<int> &order,
             const std::optional<int> &practiceBoard);
-void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir, const std::function<void (double)> &progressCallback = [](double) {});
+void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir, const std::function<void (double)> &progressCallback = [](double) {}, bool includeMusic = true);
 QString status(const QString &fileName);
 QString status(const std::vector<MapDescriptor> &descriptors, const QString &filePath);
 

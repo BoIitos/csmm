@@ -345,7 +345,7 @@ void import(const QString &fileName, const std::optional<QFileInfo>& mapDescript
 
 // loads the configuration file and loads the yaml files defined in the configuration file into the given tmpDir and the given descriptors object
 void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, const QDir& tmpDir,
-          const std::function<void(double)> &progressCallback)
+          const std::function<void(double)> &progressCallback, bool includeMusic)
 {
     ConfigFile configFile = parse(fileName);
     QFileInfo fileInfo(fileName);
@@ -409,7 +409,7 @@ void load(const QString &fileName, std::vector<MapDescriptor> &descriptors, cons
                     [=](double progress) {
                 double taskProgress = (i + progress) / configFile.entries.size();
                 progressCallback(0.5 + taskProgress * 0.5);
-            }, dir.path());
+            }, dir.path(), includeMusic);
         }
     }
 }
